@@ -4,7 +4,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{StateResponse, ScoreResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ScoreResponse, StateResponse};
 use crate::state::{State, STATE};
 
 // version info for migration info
@@ -16,11 +16,12 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
+    //addr: str,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let state = State {
         score: msg.score,
-        owner: info.sender.clone(),
+        owner: info.sender.clone(), 
     };
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     STATE.save(deps.storage, &state)?;
@@ -83,7 +84,6 @@ fn query_owner(deps: Deps) -> StdResult<StateResponse> {
     let state = STATE.load(deps.storage)?;
     Ok(StateResponse { owner: state.owner })
 }
-
 
 #[cfg(test)]
 mod tests {

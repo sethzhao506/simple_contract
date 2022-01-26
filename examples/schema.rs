@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use simple_contract::msg::{ScoreResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use simple_contract::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ScoreResponse};
 use simple_contract::state::State;
 
 fn main() {
