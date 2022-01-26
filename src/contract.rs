@@ -39,11 +39,12 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Increment {} => try_increment(deps),
-        ExecuteMsg::Reset { score } => try_reset(deps, info, score),
+        //ExecuteMsg::Increment {} => try_increment(deps),
+        ExecuteMsg::Set { score } => try_set(deps, info, score),
     }
 }
 
+/***
 pub fn try_increment(deps: DepsMut) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         state.score += 1;
@@ -52,7 +53,9 @@ pub fn try_increment(deps: DepsMut) -> Result<Response, ContractError> {
 
     Ok(Response::new().add_attribute("method", "try_increment"))
 }
-pub fn try_reset(deps: DepsMut, info: MessageInfo, score: i32) -> Result<Response, ContractError> {
+***/
+
+pub fn try_set(deps: DepsMut, info: MessageInfo, score: i32) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if info.sender != state.owner {
             return Err(ContractError::Unauthorized {});
@@ -60,7 +63,7 @@ pub fn try_reset(deps: DepsMut, info: MessageInfo, score: i32) -> Result<Respons
         state.score = score;
         Ok(state)
     })?;
-    Ok(Response::new().add_attribute("method", "reset"))
+    Ok(Response::new().add_attribute("method", "set"))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -99,6 +102,7 @@ mod tests {
     }
 
     #[test]
+    /***
     fn increment() {
         let mut deps = mock_dependencies(&coins(2, "token"));
 
@@ -116,9 +120,10 @@ mod tests {
         let value: ScoreResponse = from_binary(&res).unwrap();
         assert_eq!(18, value.score);
     }
+    ***/
 
     #[test]
-    fn reset() {
+    fn set() {
         let mut deps = mock_dependencies(&coins(2, "token"));
 
         let msg = InstantiateMsg { score: 17 };
@@ -127,16 +132,16 @@ mod tests {
 
         // beneficiary can release it
         let unauth_info = mock_info("anyone", &coins(2, "token"));
-        let msg = ExecuteMsg::Reset { score: 5 };
+        let msg = ExecuteMsg::Set { score: 5 };
         let res = execute(deps.as_mut(), mock_env(), unauth_info, msg);
         match res {
             Err(ContractError::Unauthorized {}) => {}
             _ => panic!("Must return unauthorized error"),
         }
 
-        // only the original creator can reset the scoreer
+        // only the original creator can set the scoreer
         let auth_info = mock_info("creator", &coins(2, "token"));
-        let msg = ExecuteMsg::Reset { score: 5 };
+        let msg = ExecuteMsg::Set { score: 5 };
         let _res = execute(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
 
         // should now be 5
