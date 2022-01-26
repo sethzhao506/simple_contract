@@ -3,10 +3,10 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "count"
+    "score"
   ],
   "properties": {
-    "count": {
+    "score": {
       "type": "integer",
       "format": "int32"
     }

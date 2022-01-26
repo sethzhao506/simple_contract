@@ -4,7 +4,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{ScoreResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{StateResponse, ScoreResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 
 // version info for migration info
@@ -69,6 +69,7 @@ pub fn try_set(deps: DepsMut, info: MessageInfo, score: i32) -> Result<Response,
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
+        QueryMsg::GetOwner {} => to_binary(&query_owner(deps)?),
         QueryMsg::GetScore {} => to_binary(&query_score(deps)?),
     }
 }
@@ -77,6 +78,12 @@ fn query_score(deps: Deps) -> StdResult<ScoreResponse> {
     let state = STATE.load(deps.storage)?;
     Ok(ScoreResponse { score: state.score })
 }
+
+fn query_owner(deps: Deps) -> StdResult<StateResponse> {
+    let state = STATE.load(deps.storage)?;
+    Ok(StateResponse { owner: state.owner })
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -102,7 +109,24 @@ mod tests {
     }
 
     #[test]
+    fn simple_read_owner() {
+        let mut deps = mock_dependencies(&[]);
+
+        let msg = InstantiateMsg { score: 17 };
+        let info = mock_info("creator", &coins(1000, "earth"));
+
+        // we can just call .unwrap() to assert this was a success
+        let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+        assert_eq!(0, res.messages.len());
+
+        // it worked, let's query the state
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetOwner {}).unwrap();
+        let value: StateResponse = from_binary(&res).unwrap();
+        assert_eq!("creator", value.owner);
+    }
+
     /***
+    #[test]
     fn increment() {
         let mut deps = mock_dependencies(&coins(2, "token"));
 
